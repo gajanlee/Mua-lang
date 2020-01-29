@@ -16,6 +16,15 @@ let add = fn(x, y) {
 }
 
 let result = add(five, ten)
+
+if 5 < 10 {
+	return true
+} else {
+	return false
+}
+
+5 == 10
+5 != 20
 `
 	tests := []struct {
 		expectedType	token.TokenType
@@ -52,6 +61,25 @@ let result = add(five, ten)
 		{token.COMMA, ","},
 		{token.ID, "ten"},
 		{token.R_PAREN, ")"},
+		{token.IF, "if"},
+		{token.INT, "5"},
+		{token.LESS, "<"},
+		{token.INT, "10"},
+		{token.L_BRACE, "{"},
+		{token.RETURN, "return"},
+		{token.TRUE, "true"},
+		{token.R_BRACE, "}"},
+		{token.ELSE, "else"},
+		{token.L_BRACE, "{"},
+		{token.RETURN, "return"},
+		{token.FALSE, "false"},
+		{token.R_BRACE, "}"},
+		{token.INT, "5"},
+		{token.EQUAL, "=="},
+		{token.INT, "10"},
+		{token.INT, "5"},
+		{token.NOT_EQ, "!="},
+		{token.INT, "20"},
 		{token.EOF, ""},
 	}
 
