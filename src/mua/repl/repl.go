@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"mua/ast"
+	"mua/evaluator"
 	"mua/lexer"
-	"mua/token"
 	"mua/parser"
+	"mua/token"
 )
 
 const PROMPT = ">>> "
@@ -31,8 +33,10 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect() + "\n")
+		}
 	}
 }
 
@@ -46,4 +50,8 @@ func printParserErrors(out io.Writer, errors []string) {
 	for _, msg := range errors {
 		io.WriteString(out, msg + "\n")
 	}
+}
+
+func printStatements(out io.Writer, program *ast.Program) {
+	io.WriteString(out, program.String() + "\n")
 }
