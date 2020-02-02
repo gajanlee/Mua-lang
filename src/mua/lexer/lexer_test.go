@@ -25,6 +25,10 @@ if 5 < 10 {
 
 5 == 10
 5 != 20
+"foobar"
+"foo bar"
+[1, 2];
+{"foo": "bar"}
 `
 	tests := []struct {
 		expectedType	token.TokenType
@@ -80,6 +84,19 @@ if 5 < 10 {
 		{token.INT, "5"},
 		{token.NOT_EQ, "!="},
 		{token.INT, "20"},
+		{token.STRING, "foobar"},
+		{token.STRING, "foo bar"},
+		{token.L_BRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.R_BRACKET, "]"},
+		{token.SEMICOLON, ";"},
+		{token.L_BRACE, "{"},
+		{token.STRING, "foo"},
+		{token.COLON, ":"},
+		{token.STRING, "bar"},
+		{token.R_BRACE, "}"},
 		{token.EOF, ""},
 	}
 

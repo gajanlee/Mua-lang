@@ -14,6 +14,7 @@ const (
     // Identifier and Literals
     ID  = "ID"
     INT = "INT"
+    STRING = "STRING"
 
     // Operators
     ASSIGN   = "="
@@ -32,12 +33,15 @@ const (
     // Delimiters
     COMMA     = ","
     SEMICOLON = ";"
+    COLON     = ":"
 
     L_PAREN = "("
     R_PAREN = ")"
+    L_BRACKET = "["
+    R_BRACKET = "]"
     L_BRACE = "{"
     R_BRACE = "}"
-
+    
     // keywords
     LET      = "LET"
     RETURN   = "RETURN"
