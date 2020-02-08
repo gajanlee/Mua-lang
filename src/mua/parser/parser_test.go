@@ -818,3 +818,42 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, expr.Arguments[1], 2, "*", 3)
 	testInfixExpression(t, expr.Arguments[2], 4, "+", 5)
 }
+
+func TestMacroLiteralParsing(t *testing.T) {
+	input := `macro(x, y) { x + y}`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program statements is not 1, got=%d.", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("statement is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	macro, ok := stmt.Expression.(*ast.MacroLiteral)
+	if !ok {
+		t.Fatalf("stmt is not MacroLiteral. got=%T", stmt)
+	}
+
+	if len(macro.Parameters) != 2 {
+		t.Fatalf("macro literal parameters wrong. expected=2, got=%d", len(macro.Parameters))
+	}
+
+	testLiteralExpression(t, macro.Parameters[0], "x")
+	testLiteralExpression(t, macro.Parameters[1], "y")
+
+	if len(macro.Body.Statements) != 1 {
+		t.Fatalf("macro Body Statements expected=1. got=%d", len(macro.Body.Statements))
+	}
+	bodyStmt, ok := macro.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("macro body stmt is not ast.ExpressionStatement. got=%T", 
+			macro.Body.Statements[0])
+	}
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}

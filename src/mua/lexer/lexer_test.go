@@ -29,6 +29,7 @@ if 5 < 10 {
 "foo bar"
 [1, 2];
 {"foo": "bar"}
+macro(x, y) { x + y }
 `
 	tests := []struct {
 		expectedType	token.TokenType
@@ -96,6 +97,17 @@ if 5 < 10 {
 		{token.STRING, "foo"},
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
+		{token.R_BRACE, "}"},
+		{token.MACRO, "macro"},
+		{token.L_PAREN, "("},
+		{token.ID, "x"},
+		{token.COMMA, ","},
+		{token.ID, "y"},
+		{token.R_PAREN, ")"},
+		{token.L_BRACE, "{"},
+		{token.ID, "x"},
+		{token.PLUS, "+"},
+		{token.ID, "y"},
 		{token.R_BRACE, "}"},
 		{token.EOF, ""},
 	}

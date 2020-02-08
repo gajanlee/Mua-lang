@@ -21,8 +21,7 @@ import (
 var builtins = map[string]*object.Builtin {
 	"len": &object.Builtin{Fn: _len},
 	"first": &object.Builtin{Fn: _first},
-
-	"puts": &object.Builtin{Fn: _puts},
+	"print": &object.Builtin{Fn: _print},
 }
 
 func _len(args ...object.Object) object.Object {
@@ -51,7 +50,7 @@ func _first(args ...object.Object) object.Object {
 	}
 }
 
-func _puts(args ...object.Object) object.Object {
+func _print(args ...object.Object) object.Object {
 	for _, arg := range args {
 		fmt.Println(arg.Inspect())
 	}

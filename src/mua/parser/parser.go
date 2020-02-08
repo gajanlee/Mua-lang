@@ -70,6 +70,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.L_PAREN, p.parseGroupExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefix(token.MACRO, p.parseMacroLiteral)
 	
 	for _, tok := range []token.TokenType{token.PLUS, token.MINUS, token.SLASH,
 		token.ASTERISK, token.EQUAL, token.NOT_EQ, token.LESS, token.GREATER} {
@@ -463,4 +464,15 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	expr := &ast.CallExpression{Token: p.currToken, Function: function}
 	expr.Arguments = p.parseExpressionList(token.R_PAREN)
 	return expr
+}
+
+func (p *Parser) parseMacroLiteral() ast.Expression {
+	literal := &ast.MacroLiteral{Token: p.currToken}
+
+	if !p.expectPeek(token.L_PAREN) { return nil }
+	literal.Parameters = p.parseFunctionParameters()
+	if !p.expectPeek(token.L_BRACE) { return nil }
+
+	literal.Body = p.parseBlockStatement()
+	return literal
 }

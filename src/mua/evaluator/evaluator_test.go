@@ -518,3 +518,49 @@ func TestBuiltinFunctions(t *testing.T) {
 		}
 	}
 }
+
+func TestDefineMacros(t *testing.T) {
+	input := `
+let number = 1;
+let function = fn(x, y) { x + y }
+let mymacro = macro(x, y) { x + y }
+	`
+	
+	env := object.NewEnvironment()
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	DefineMacros(program, env)
+
+	if len(program.Statements) != 2 {
+		t.Fatalf("program statements number wrong. got=%d", len(program.Statements))
+	}
+	_, ok := env.Get("number")
+	if ok { 
+		t.Fatalf("number should not be defined") 
+	}
+	_, ok = env.Get("function")
+	if ok {
+		t.Fatalf("function should not be defined")
+	}
+
+	obj, ok := env.Get("mymacro")
+	if !ok {
+		t.Fatalf("macro not in environment")
+	}
+	macro, ok := obj.(*object.Macro)
+	if !ok {
+		t.Fatalf("object is not Macro. got=%T (%+v)", obj, obj)
+	}
+	if len(macro.Parameters) != 2 {
+		t.Fatalf("macro parameters count expected=2, got=%d", len(macro.Parameters))
+	}
+	if macro.Parameters[0].String() != "x" || macro.Parameters[1].String() != "y" {
+		t.Fatalf("parameter expected=(%q, %q). got=(%q, %q)", 
+			"x", "y", macro.Parameters[0], macro.Parameters[1])
+	}
+	expectedBody := "(x + y)"
+	if macro.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got=%q", expectedBody, macro.Body.String())
+	}
+}

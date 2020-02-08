@@ -118,6 +118,26 @@ func (hl *HashLiteral) String() string {
 	return out.String()
 }
 
+type MacroLiteral struct {
+	Token 	   token.Token		// the 'macro' token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (ml *MacroLiteral) expressionNode()      {}
+func (ml *MacroLiteral) TokenLiteral() string { return ml.Token.Literal }
+func (ml *MacroLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range ml.Parameters {
+		params = append(params, p.String())
+	}
+	out.WriteString(ml.TokenLiteral() + "(" + strings.Join(params, ", ") + ") " + ml.Body.String())
+
+	return out.String()
+}
+
 // array[0]
 type IndexExpression struct {
 	Token token.Token		// token.L_BRACKET
