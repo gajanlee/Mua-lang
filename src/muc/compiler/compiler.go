@@ -44,9 +44,15 @@ func New() *Compiler {
 		previousInstruction: EmittedInstruction{},
 	}
 
+	symbolTable := NewSymbolTable()
+
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
 	return &Compiler{
 		constants:    []object.Object{},
-		symbolTable: NewSymbolTable(),
+		symbolTable: symbolTable,
 		scopes: []CompilationScope{mainScope},
 		scopeIndex: 0,
 	}
@@ -115,6 +121,20 @@ func (c *Compiler) changeOperand(opPos int, operand int) {
 	c.replaceInstruction(opPos, newInstruction)
 }
 
+func (c *Compiler) loadSymbol(s Symbol) {
+	switch s.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, s.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, s.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, s.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, s.Index)
+		
+	}
+}
+
 func (c *Compiler) enterScope() {
 	scope := CompilationScope{
 		instructions: code.Instructions{},
@@ -154,10 +174,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpPop)
 
 	case *ast.LetStatement:
+		symbol := c.symbolTable.Define(node.Name.Value)
 		err := c.Compile(node.Value)
 		if err != nil { return err }
 
-		symbol := c.symbolTable.Define(node.Name.Value)
 		if symbol.Scope == GlobalScope {
 			c.emit(code.OpSetGlobal, symbol.Index)
 		} else {
@@ -170,11 +190,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpGetGlobal, symbol.Index)
-		} else {
-			c.emit(code.OpGetLocal, symbol.Index)
-		}
+		c.loadSymbol(symbol)
 
 	case *ast.StringLiteral:
 		str := &object.String{Value: node.Value}
@@ -237,15 +253,22 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 		
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
+
+		for _, s := range freeSymbols {
+			c.loadSymbol(s)
+		}
 
 		compiledFn := &object.CompiledFunction{
 			Instructions: instructions,
 			NumLocals: numLocals,
 			NumParameters: len(node.Parameters),
 		}
-		c.emit(code.OpConstant, c.addConstant(compiledFn))
+		// c.emit(code.OpConstant, c.addConstant(compiledFn))
+		fnIndex := c.addConstant(compiledFn)
+		c.emit(code.OpClosure, fnIndex, len(freeSymbols))
 	
 	case *ast.CallExpression:
 		err := c.Compile(node.Function)

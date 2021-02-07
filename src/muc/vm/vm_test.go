@@ -154,6 +154,16 @@ func testExpectedObject(
 				t.Errorf("testIntegerObject failed %s", err)
 			}
 		}
+
+	case *object.Error:
+		errObj, ok := actual.(*object.Error)
+		if !ok {
+			t.Errorf("object is not Error: %T (%+v)", actual, actual)
+			return
+		}
+		if errObj.Message != expected.Message {
+			t.Errorf("wrong error message. expected=%q, got=%q", expected.Message, errObj.Message)
+		}
 	}
 }
 
@@ -526,4 +536,60 @@ func TestCallingFunctionWithWrongArguments(t *testing.T) {
 			t.Fatalf("wrong VM error: want=%q, got=%q", tt.expected, err)
 		}
 	}
+}
+
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{
+			`len(1)`,
+			&object.Error{
+				Message: "argument to `len` not supported, got INTEGER",
+			},
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestClosures(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let newClosure = fn(a) {
+				fn() { a; };
+			};
+			let closure = newClosure(99);
+			closure();
+			`,
+			expected: 99,
+		},
+	}
+	runVmTests(t, tests)
+}
+
+func TestRecursiveFibonacci(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let fibonacci = fn(x) {
+				if (x == 0) {
+					return 0;
+				} else {
+					if (x == 1) {
+						return 1;
+					} else {
+						fibonacci(x - 1) + fibonacci(x - 2);
+					}
+				}
+			};
+			fibonacci(15);
+			`,
+			expected: 610,
+		},
+	}
+
+	runVmTests(t, tests)
 }
